@@ -10,6 +10,8 @@
     <title>Web OS</title>
     <!-- Le fichier manifest.webmanifest est essentiel pour la reconnaissance PWA et l'installation. -->
     <!-- Il doit exister à la racine de votre déploiement. -->
+    <!-- Si vous n'avez pas ce fichier, vous pouvez le générer dynamiquement via JS (comme dans les versions précédentes), -->
+    <!-- mais pour une PWA robuste, un fichier manifest.webmanifest statique est recommandé. -->
     <link rel="manifest" href="manifest.webmanifest">
     <!-- meta theme-color définit la couleur de la barre d'état du navigateur sur mobile, améliorant l'intégration visuelle. -->
     <meta name="theme-color" content="#1a73e8" />
@@ -28,29 +30,113 @@
             background:url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat fixed;
             display:flex; justify-content:center; align-items:center; /* Centrage du contenu principal */
         }
+
+        /* Connexion Google */
         #login {
             background:rgba(255,255,255,0.9);
             padding:20px; border-radius:16px; text-align:center;
             box-shadow:0 6px 20px rgba(0,0,0,0.3);
+            display: flex; /* S'assurer qu'il est affiché par défaut au démarrage */
+            flex-direction: column; /* Pour organiser le contenu verticalement */
+            align-items: center; /* Centrer horizontalement les éléments à l'intérieur */
+            gap: 20px; /* Espace entre les éléments de connexion */
         }
+        #login h2 { color: #333; } /* Couleur du titre de connexion */
+
+
+        /* Styles de l'heure en haut à gauche */
+        #currentTime {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            z-index: 1000; /* Assure qu'il est au-dessus des autres éléments */
+            background: rgba(0,0,0,0.4);
+            padding: 5px 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+            display: none; /* Caché par défaut, affiché après connexion */
+        }
+
+        /* Styles de la barre de navigateur web globale en haut au centre */
+        #globalBrowserBar {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%); /* Centrage horizontal */
+            width: 70%; /* Prend 70% de la largeur de l'écran */
+            max-width: 400px; /* Limite la largeur sur les grands écrans */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 1000; /* Assure qu'il est au-dessus */
+            backdrop-filter: blur(6px);
+            display: none; /* Caché par défaut, affiché après connexion */
+        }
+        #globalBrowserUrlInput {
+            flex-grow: 1; /* Prend l'espace disponible */
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 14px;
+        }
+        #globalBrowserUrlInput::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        #globalBrowserGoBtn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 44px; min-height: 36px; /* Taille de cible tactile */
+        }
+
+
         /* Styles des boutons fixes en haut */
-        #logoutBtn, #installBtn {
+        #installBtn {
             position:fixed; top:15px;
             padding:10px 14px; border-radius:8px;
             background:#1a73e8; color:#fff; border:none; cursor:pointer;
-            font-size:14px; display:none; /* Cachés par défaut */
+            font-size:14px;
             /* Amélioration : Taille de cible tactile suffisante pour les doigts */
             min-width: 44px; min-height: 44px;
+            right:15px; /* Positionnement du bouton installer */
+            /* Note pour le développement : Ce bouton ne s'affiche que si 'beforeinstallprompt' est déclenché. */
+            /* Cela arrive si l'application est sur HTTPS et répond aux critères du navigateur pour l'installation PWA. */
+            display: none; /* Cacher par défaut et montrer via JS */
         }
-        #logoutBtn { right:15px; }
-        #installBtn { right:120px; } /* Ajusté si nécessaire pour éviter les chevauchements */
+        #logoutBtn {
+            position: fixed;
+            top: 15px;
+            right: 120px; /* Positionné à côté du bouton d'installation */
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #e8451a; /* Couleur différente pour la déconnexion */
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 44px; min-height: 44px;
+            display: none; /* Caché par défaut, affiché après connexion */
+        }
+
         /* Dock d'applications en bas */
         #dock {
             position:fixed; bottom:0; left:0; right:0;
             background:rgba(0,0,0,0.6);
             padding:10px; display:flex; justify-content:center; gap:20px;
             border-radius:12px 12px 0 0; backdrop-filter:blur(6px); /* Effet de flou moderne */
-            display:none; /* Caché par défaut */
+            display:none; /* Le dock est maintenant caché par défaut */
             overflow-x:auto; /* Permet le défilement horizontal si trop d'icônes */
             -webkit-overflow-scrolling: touch; /* Améliore le défilement sur iOS */
         }
@@ -63,14 +149,15 @@
         #dock img { width:40px; height:40px; margin-bottom:4px; }
         /* Explorateur de fichiers */
         #explorer {
-            position:fixed; top:60px; left:10%; right:10%; bottom:80px;
+            position:fixed; top:80px; /* Ajusté pour laisser de la place à la barre de navigation globale */
+            left:10%; right:10%; bottom:80px;
             background:rgba(255,255,255,0.95);
             border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);
             display:none; flex-direction:column; padding:10px;
             overflow:hidden;
             z-index: 100; /* Assure que l'explorateur est au-dessus du dock */
         }
-        #explorer h3 { margin-bottom:10px; }
+        #explorer h3 { margin-bottom:10px; color: #333; }
         #explorer .actions { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
         #explorer button {
             background:#1a73e8; color:#fff; border:none;
@@ -107,14 +194,19 @@
         /* Media Queries pour la réactivité sur différentes tailles d'écran */
         @media (max-width:768px) {
             #dock img {width:32px; height:32px;}
-            #logoutBtn,#installBtn {font-size:12px; padding:8px 12px;}
-            #explorer {left:5%; right:5%; bottom:100px;}
+            #installBtn, #logoutBtn {font-size:12px; padding:8px 12px;}
+            #explorer {left:5%; right:5%; bottom:100px; top:90px;} /* Ajustement pour mobile */
+            #globalBrowserBar { width: 90%; } /* Plus large sur les petits écrans */
         }
         @media (max-width:480px) {
             #dock {gap:12px; padding:8px;}
             #dock a {font-size:10px;}
-            #explorer {left:0; right:0; border-radius:0; top:0; bottom:0;} /* L'explorateur prend tout l'écran sur les petits mobiles */
+            #explorer {left:0; right:0; border-radius:0; top:0; bottom:0;} /* L'explorateur prend tout l'écran sur les très petits mobiles */
             body { align-items: flex-start; } /* Ajustement pour que le contenu ne soit pas écrasé */
+            #globalBrowserBar { top: 10px; } /* Légèrement plus haut sur les très petits écrans */
+            #installBtn { top: 10px; } /* Pour correspondre à la barre du navigateur */
+            #logoutBtn { top: 10px; }
+            #currentTime { top: 10px; } /* Pour correspondre à la barre du navigateur */
         }
     </style>
 </head>
@@ -125,10 +217,23 @@
     <!-- Connexion Google -->
     <div id="login">
         <h2>Connexion</h2>
+        <!-- REMPLACEZ CET ID CLIENT PAR LE VÔTRE ! -->
+        <!-- Vous devez configurer cet ID dans votre console Google Cloud. -->
+        <!-- Assurez-vous d'ajouter l'URL exacte de votre site (ex: https://votresite.com) -->
+        <!-- dans les "Origines JavaScript autorisées" de votre projet Google Cloud. -->
         <div id="g_id_onload"
-            data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com" <!-- REMPLACEZ CECI PAR VOTRE VRAI ID CLIENT GOOGLE -->
+            data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
             data-callback="onSignIn"></div>
         <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <!-- Affichage de l'heure en haut à gauche -->
+    <div id="currentTime"></div>
+
+    <!-- Barre de navigation web globale en haut au centre -->
+    <div id="globalBrowserBar">
+        <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
+        <button id="globalBrowserGoBtn">Go</button>
     </div>
 
     <!-- Boutons d'action globaux -->
@@ -166,11 +271,32 @@
     <script>
         let deferredPrompt; // Variable pour stocker l'événement d'installation PWA
 
+        // Éléments des nouvelles fonctionnalités (déclarés ici pour être accessibles)
+        const currentTimeElement = document.getElementById('currentTime');
+        const globalBrowserUrlInput = document.getElementById('globalBrowserUrlInput');
+        const globalBrowserGoBtn = document.getElementById('globalBrowserGoBtn');
+
+        // Fonction pour mettre à jour l'heure en temps réel
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}`;
+        }
+
+        // Met à jour l'heure toutes les secondes (1000 ms)
+        setInterval(updateTime, 1000);
+        // Appelle la fonction une fois au chargement pour afficher l'heure immédiatement
+        updateTime();
+
         // PWA Install : Gère l'événement d'invitation à installer la PWA.
+        // Cet événement se déclenche uniquement si l'application est sur HTTPS et répond aux critères PWA du navigateur.
+        // Dans cet environnement de prévisualisation, il peut ne pas se déclencher.
         window.addEventListener("beforeinstallprompt", (e) => {
             e.preventDefault(); // Empêche l'invitation par défaut du navigateur
             deferredPrompt = e; // Stocke l'événement pour l'utiliser plus tard
             document.getElementById("installBtn").style.display = "block"; // Affiche le bouton d'installation
+            console.log("Événement 'beforeinstallprompt' déclenché. Le bouton d'installation PWA est maintenant visible.");
         });
 
         // Gère le clic sur le bouton d'installation PWA
@@ -185,7 +311,21 @@
                 } else {
                     console.log("Installation PWA annulée.");
                 }
+            } else {
+                console.log("L'événement 'beforeinstallprompt' n'a pas été déclenché. L'installation PWA ne peut pas être lancée via le bouton.");
+                showStatusMessage("L'installation PWA ne peut pas être lancée. Accédez au site sur un smartphone via HTTPS et cherchez 'Ajouter à l'écran d'accueil'.", true);
             }
+        });
+
+        // Fonction pour naviguer depuis la barre de navigateur globale
+        globalBrowserGoBtn.addEventListener('click', () => {
+            let url = globalBrowserUrlInput.value;
+            // Simple validation: ajoute https:// si manquant
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            // Ouvre l'URL dans un nouvel onglet ou une nouvelle fenêtre, simulant une navigation externe
+            window.open(url, '_blank');
         });
 
         // Google Sign-In Callback : Appelé après une connexion réussie
@@ -194,6 +334,8 @@
             document.getElementById("login").style.display = "none"; // Cache l'écran de connexion
             document.getElementById("dock").style.display = "flex"; // Affiche le dock
             document.getElementById("logoutBtn").style.display = "block"; // Affiche le bouton de déconnexion
+            document.getElementById("currentTime").style.display = "block"; // Affiche l'heure
+            document.getElementById("globalBrowserBar").style.display = "flex"; // Affiche la barre de navigation
             // Vous pouvez ici traiter l'identité de l'utilisateur (jeton ID, etc.)
         }
         // Expose la fonction globalement pour Google Sign-In
@@ -204,13 +346,17 @@
             // L'erreur "FedCM" est souvent liée à l'environnement sandboxed.
             // La déconnexion visuelle reste fonctionnelle en masquant les éléments.
             // Une vraie déconnexion de session nécessiterait une logique côté serveur ou un environnement non-sandboxé.
+            // google.accounts.id.disableAutoSelect(); // Commenté car peut générer des erreurs FedCM dans certains environnements
             document.getElementById("dock").style.display = "none"; // Cache le dock
             document.getElementById("logoutBtn").style.display = "none"; // Cache le bouton de déconnexion
+            document.getElementById("currentTime").style.display = "none"; // Cache l'heure
+            document.getElementById("globalBrowserBar").style.display = "none"; // Cache la barre de navigation
             document.getElementById("login").style.display = "flex"; // Affiche l'écran de connexion à nouveau (display flex pour le centrage)
             console.log("Déconnexion réussie.");
         }
         // Expose la fonction globalement pour le bouton onclick
         window.signOut = signOut;
+
 
         // Explorateur de fichiers : Ouvrir un fichier local (API File System Access)
         async function openFile() {
