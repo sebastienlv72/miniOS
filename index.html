@@ -167,6 +167,58 @@
         }
         #fileList { flex:1; overflow:auto; background:#f1f3f4; padding:10px; border-radius:8px; color: #333; }
 
+        /* Styles pour la grille d'applications sur le bureau */
+        #desktopAppsGrid {
+            display: none; /* Caché par défaut, affiché après connexion */
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Responsive grid */
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px; /* Limite la largeur sur les grands écrans */
+            box-sizing: border-box;
+            position: absolute; /* Positionne-le au-dessus de l'arrière-plan */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centrage */
+        }
+
+        /* Styles pour les tuiles d'applications individuelles sur le bureau */
+        .desktop-app-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 12px;
+            transition: transform 0.2s, background-color 0.2s;
+            text-align: center;
+            user-select: none;
+            text-decoration: none; /* Supprime le soulignement des liens */
+            color: #fff; /* Couleur du texte des tuiles */
+            background-color: rgba(255, 255, 255, 0.1); /* Fond légèrement transparent */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Ombre subtile */
+        }
+
+        .desktop-app-tile:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-app-tile img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 8px;
+            border-radius: 8px; /* Images légèrement arrondies */
+        }
+
+        .desktop-app-tile span {
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* Nouvelle section : Styles pour les messages d'état (remplace alert()) */
         #statusMessage {
             position: fixed;
@@ -197,6 +249,7 @@
             #installBtn, #logoutBtn {font-size:12px; padding:8px 12px;}
             #explorer {left:5%; right:5%; bottom:100px; top:90px;} /* Ajustement pour mobile */
             #globalBrowserBar { width: 90%; } /* Plus large sur les petits écrans */
+            #desktopAppsGrid { top: 60%; } /* Ajuste la position sur mobile */
         }
         @media (max-width:480px) {
             #dock {gap:12px; padding:8px;}
@@ -207,6 +260,7 @@
             #installBtn { top: 10px; } /* Pour correspondre à la barre du navigateur */
             #logoutBtn { top: 10px; }
             #currentTime { top: 10px; } /* Pour correspondre à la barre du navigateur */
+            #desktopAppsGrid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 15px; } /* Plus petites tuiles sur très petit écran */
         }
     </style>
 </head>
@@ -225,6 +279,35 @@
             data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
             data-callback="onSignIn"></div>
         <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <!-- Grille des applications sur le bureau (visible après connexion) -->
+    <div id="desktopAppsGrid">
+        <!-- Nouvelle Tuile d'Application : Messages -->
+        <a href="https://example.com/messages" target="_blank" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/speech-bubble.png" alt="Messages">
+            <span>Messages</span>
+        </a>
+        <!-- Nouvelle Tuile d'Application : Paramètres -->
+        <a href="https://example.com/settings" target="_blank" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png" alt="Settings">
+            <span>Paramètres</span>
+        </a>
+        <!-- Nouvelle Tuile d'Application : Photos -->
+        <a href="https://example.com/photos" target="_blank" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/pictures.png" alt="Photos">
+            <span>Photos</span>
+        </a>
+        <!-- Nouvelle Tuile d'Application : Musique -->
+        <a href="https://example.com/music" target="_blank" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/music-folder.png" alt="Music">
+            <span>Musique</span>
+        </a>
+        <!-- Nouvelle Tuile d'Application : Navigateur (une autre façon d'accéder au navigateur) -->
+        <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/internet.png" alt="Navigateur">
+            <span>Navigateur</span>
+        </a>
     </div>
 
     <!-- Affichage de l'heure en haut à gauche -->
@@ -249,8 +332,10 @@
         <a href="https://sheets.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/sheets_48dp.png" alt="Sheets">Sheets</a>
         <a href="https://calendar.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/calendar_48dp.png" alt="Agenda">Agenda</a>
         <a href="https://youtube.com" target="_blank"><img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">YouTube</a>
-        <!-- Lien pour ouvrir l'explorateur de fichiers local -->
+        <!-- Lien pour ouvrir l'explorateur de fichiers local (reste une fonction interne) -->
         <a href="#" onclick="openExplorer()"><img src="https://img.icons8.com/material-outlined/48/ffffff/folder-invoices.png" alt="Fichiers">Fichiers</a>
+        <!-- Nouveau bouton pour accéder à GitHub -->
+        <a href="https://github.com/" target="_blank"><img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub</a>
     </div>
 
     <!-- Explorateur de fichiers -->
@@ -345,6 +430,7 @@
             document.getElementById("logoutBtn").style.display = "block"; // Affiche le bouton de déconnexion
             document.getElementById("currentTime").style.display = "block"; // Affiche l'heure
             document.getElementById("globalBrowserBar").style.display = "flex"; // Affiche la barre de navigation
+            document.getElementById("desktopAppsGrid").style.display = "grid"; // Affiche la grille d'applications
             // Vous pouvez ici traiter l'identité de l'utilisateur (jeton ID, etc.)
         }
         // Expose la fonction globalement pour Google Sign-In
@@ -360,6 +446,7 @@
             document.getElementById("logoutBtn").style.display = "none"; // Cache le bouton de déconnexion
             document.getElementById("currentTime").style.display = "none"; // Cache l'heure
             document.getElementById("globalBrowserBar").style.display = "none"; // Cache la barre de navigation
+            document.getElementById("desktopAppsGrid").style.display = "none"; // Cache la grille d'applications
             document.getElementById("login").style.display = "flex"; // Affiche l'écran de connexion à nouveau (display flex pour le centrage)
             console.log("Déconnexion réussie.");
         }
