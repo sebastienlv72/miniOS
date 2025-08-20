@@ -319,13 +319,22 @@
 
         // Fonction pour naviguer depuis la barre de navigateur globale
         globalBrowserGoBtn.addEventListener('click', () => {
-            let url = globalBrowserUrlInput.value;
-            // Simple validation: ajoute https:// si manquant
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                url = 'https://' + url;
+            let query = globalBrowserUrlInput.value.trim();
+            let url;
+
+            // Simple détection si c'est une URL ou des mots-clés
+            // Vérifie si la chaîne commence par un protocole ou contient un point après le début (pour les domaines)
+            if (query.startsWith('http://') || query.startsWith('https://') || query.includes('.') && !query.includes(' ')) {
+                url = query;
+                // Si l'URL n'a pas de protocole, ajoute HTTPS par défaut
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+            } else {
+                // Si ce sont des mots-clés, effectue une recherche Google
+                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
             }
-            // Ouvre l'URL dans un nouvel onglet ou une nouvelle fenêtre, simulant une navigation externe
-            window.open(url, '_blank');
+            window.open(url, '_blank'); // Ouvre l'URL dans un nouvel onglet
         });
 
         // Google Sign-In Callback : Appelé après une connexion réussie
