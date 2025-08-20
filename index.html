@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Mini WebOS</title>
+    <!-- Tailwind CSS CDN pour un style rapide et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Manifest pour la PWA (sera généré dynamiquement) -->
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Couleur de fond sombre */
+            color: #e2e8f0; /* Couleur de texte claire */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Empêche le défilement excessif */
+        }
+        .desktop-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px; /* Limite la largeur sur les grands écrans */
+            box-sizing: border-box;
+            position: relative; /* Pour positionner l'heure */
+        }
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 12px;
+            transition: transform 0.2s, background-color 0.2s;
+            text-align: center;
+            user-select: none; /* Empêche la sélection de texte */
+        }
+        .app-icon:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .app-icon-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background-color: #2d3748; /* Couleur de fond pour les icônes */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #cbd5e0; /* Couleur de l'icône */
+        }
+        .app-icon-label {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            white-space: nowrap; /* Empêche le retour à la ligne du texte de l'icône */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Ajoute des points de suspension si le texte est trop long */
+        }
+
+        /* Fenêtre de l'application */
+        .app-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2d3748; /* Fond de la fenêtre */
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 500px;
+            height: 70%;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            border: 1px solid #4a5568;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .app-window.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #4a5568; /* Entête de la fenêtre */
+            border-bottom: 1px solid #2d3748;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            cursor: grab; /* Indique que la fenêtre est déplaçable */
+            user-select: none;
+            touch-action: none; /* Empêche le défilement par défaut lors du glisser-déposer */
+        }
+        .app-title {
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+        .close-button {
+            background: none;
+            border: none;
+            color: #e2e8f0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 5px;
+            transition: color 0.2s;
+        }
+        .close-button:hover {
+            color: #fc8181; /* Rouge pâle au survol */
+        }
+        .app-content {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            color: #cbd5e0;
+        }
+
+        /* Styles pour l'heure en haut à gauche */
+        .top-left-time {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e2e8f0;
+            z-index: 500; /* Pour s'assurer qu'elle est au-dessus des icônes */
+        }
+
+        /* Styles pour les icônes Font Awesome */
+        @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
+    </style>
+</head>
+<body>
+
+    <div class="desktop-container">
+        <!-- Affichage de l'heure en haut à gauche -->
+        <div id="currentTime" class="top-left-time"></div>
+
+        <!-- Icône Application Messages -->
+        <div class="app-icon" data-app="messages">
+            <div class="app-icon-img"><i class="fas fa-comment-dots"></i></div>
+            <span class="app-icon-label">Messages</span>
+        </div>
+        <!-- Icône Application Paramètres -->
+        <div class="app-icon" data-app="settings">
+            <div class="app-icon-img"><i class="fas fa-cog"></i></div>
+            <span class="app-icon-label">Paramètres</span>
+        </div>
+        <!-- Icône Application Navigateur -->
+        <div class="app-icon" data-app="browser">
+            <div class="app-icon-img"><i class="fas fa-globe"></i></div>
+            <span class="app-icon-label">Navigateur</span>
+        </div>
+        <!-- Icône Application Photos -->
+        <div class="app-icon" data-app="photos">
+            <div class="app-icon-img"><i class="fas fa-image"></i></div>
+            <span class="app-icon-label">Photos</span>
+        </div>
+        <!-- Icône Application Musique -->
+        <div class="app-icon" data-app="music">
+            <div class="app-icon-img"><i class="fas fa-music"></i></div>
+            <span class="app-icon-label">Musique</span>
+        </div>
+        <!-- Icône Application Fichiers -->
+        <div class="app-icon" data-app="files">
+            <div class="app-icon-img"><i class="fas fa-folder"></i></div>
+            <span class="app-icon-label">Fichiers</span>
+        </div>
+    </div>
+
+    <!-- Fenêtre générique d'application (cachée par défaut) -->
+    <div id="appWindow" class="app-window hidden">
+        <div class="app-header">
+            <span id="appTitle" class="app-title">Nom de l'Application</span>
+            <button class="close-button" onclick="closeAppWindow()">&times;</button>
+        </div>
+        <div id="appContent" class="app-content">
+            Contenu de l'application...
+        </div>
+    </div>
+
+    <!-- Script du Manifest PWA -->
+    <script id="manifest-content" type="application/json">
+        {
+            "name": "Mon Mini WebOS",
+            "short_name": "MiniWebOS",
+            "description": "Un système d'exploitation web simple pour votre téléphone.",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#1a202c",
+            "theme_color": "#4a5568",
+            "icons": [
+                {
+                    "src": "https://placehold.co/192x192/4a5568/e2e8f0?text=OS",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "https://placehold.co/512x512/4a5568/e2e8f0?text=OS",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        }
+    </script>
+
+    <script>
+        const appIcons = document.querySelectorAll('.app-icon');
+        const appWindow = document.getElementById('appWindow');
+        const appTitle = document.getElementById('appTitle');
+        const appContent = document.getElementById('appContent');
+        const currentTimeElement = document.getElementById('currentTime');
+
+        // Fonction pour mettre à jour l'heure
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}`;
+        }
+
+        // Mettre à jour l'heure toutes les secondes
+        setInterval(updateTime, 1000);
+        // Appeler une fois au chargement pour afficher immédiatement l'heure
+        updateTime();
+
+        // Gérer l'ouverture des fenêtres d'applications
+        appIcons.forEach(icon => {
+            icon.addEventListener('click', () => {
+                const appName = icon.dataset.app;
+                openAppWindow(appName);
+            });
+        });
+
+        // Fonction pour ouvrir une fenêtre d'application
+        function openAppWindow(appName) {
+            appWindow.classList.add('open'); // Rendre la fenêtre visible
+            appWindow.classList.remove('hidden'); // S'assurer qu'elle n'a pas display: none
+
+            // Mettre à jour le titre et le contenu en fonction de l'application
+            switch (appName) {
+                case 'messages':
+                    appTitle.textContent = 'Messages';
+                    appContent.innerHTML = '<p>Bienvenue dans votre boîte de réception !</p><p>Vous avez 3 nouveaux messages.</p>';
+                    break;
+                case 'settings':
+                    appTitle.textContent = 'Paramètres';
+                    appContent.innerHTML = '<p>Ajustez les paramètres de votre Mini WebOS ici.</p><ul><li>Thème: Sombre</li><li>Son: Activé</li></ul>';
+                    break;
+                case 'browser':
+                    appTitle.textContent = 'Navigateur Web';
+                    appContent.innerHTML = `
+                        <div class="flex items-center space-x-2 mb-4">
+                            <input type="url" id="browserUrlInput" placeholder="https://exemple.com" class="p-2 rounded-md bg-gray-600 text-white flex-grow">
+                            <button onclick="navigateToUrl()" class="p-2 bg-blue-600 rounded-md text-white font-bold">Aller</button>
+                        </div>
+                        <iframe id="browserFrame" src="about:blank" class="w-full h-full border-none rounded-md bg-gray-700"></iframe>
+                    `;
+                    // Charger une page par défaut ou gérer la navigation
+                    const browserFrame = document.getElementById('browserFrame');
+                    browserFrame.src = "https://www.google.com"; // Page de démarrage par défaut
+                    break;
+                case 'photos':
+                    appTitle.textContent = 'Photos';
+                    appContent.innerHTML = '<p>Vos souvenirs en images !</p><div class="grid grid-cols-2 gap-4 mt-4"><img src="https://placehold.co/100x100/374151/d1d5db?text=Photo1" class="rounded-md w-full" alt="Photo 1"><img src="https://placehold.co/100x100/374151/d1d5db?text=Photo2" class="rounded-md w-full" alt="Photo 2"></div>';
+                    break;
+                case 'music':
+                    appTitle.textContent = 'Musique';
+                    appContent.innerHTML = '<p>Écoutez vos morceaux préférés.</p><div class="flex items-center justify-center mt-4"><button class="p-3 bg-blue-600 rounded-full mx-2"><i class="fas fa-backward"></i></button><button class="p-3 bg-blue-600 rounded-full mx-2"><i class="fas fa-play"></i></button><button class="p-3 bg-blue-600 rounded-full mx-2"><i class="fas fa-forward"></i></button></div>';
+                    break;
+                case 'files':
+                    appTitle.textContent = 'Mes Fichiers';
+                    appContent.innerHTML = '<p>Naviguez dans vos documents.</p><ul><li>Document.txt</li><li>Image.png</li><li>Présentation.pdf</li></ul>';
+                    break;
+                default:
+                    appTitle.textContent = 'Application Inconnue';
+                    appContent.innerHTML = '<p>Cette application n\'a pas de contenu défini.</p>';
+            }
+        }
+
+        // Fonction pour naviguer vers l'URL saisie (pour l'application Navigateur)
+        function navigateToUrl() {
+            const urlInput = document.getElementById('browserUrlInput');
+            const browserFrame = document.getElementById('browserFrame');
+            let url = urlInput.value;
+
+            // Simple validation: add https:// if missing
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            browserFrame.src = url;
+        }
+
+        // Exposer la fonction navigateToUrl globalement pour le bouton onclick
+        window.navigateToUrl = navigateToUrl;
+
+        // Fonction pour fermer la fenêtre d'application
+        function closeAppWindow() {
+            appWindow.classList.remove('open');
+            // Utiliser un délai pour permettre la transition d'opacité avant de cacher complètement
+            setTimeout(() => {
+                appWindow.classList.add('hidden');
+                // Réinitialiser le contenu de l'iframe du navigateur pour éviter des problèmes de sécurité/performance
+                const browserFrame = document.getElementById('browserFrame');
+                if (browserFrame) {
+                    browserFrame.src = 'about:blank';
+                }
+            }, 300);
+        }
+
+        // Exposer la fonction closeAppWindow globalement pour le bouton onclick
+        window.closeAppWindow = closeAppWindow;
+
+
+        // --- Gestion du glisser-déposer de la fenêtre d'application ---
+        let isDragging = false;
+        let offset = { x: 0, y: 0 };
+        const appHeader = document.querySelector('.app-header');
+
+        // Événements de souris
+        appHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            appWindow.style.cursor = 'grabbing';
+            offset = {
+                x: e.clientX - appWindow.getBoundingClientRect().left,
+                y: e.clientY - appWindow.getBoundingClientRect().top
+            };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            // Limiter le mouvement à l'intérieur de la fenêtre visible
+            let newX = e.clientX - offset.x;
+            let newY = e.clientY - offset.y;
+
+            const maxX = window.innerWidth - appWindow.offsetWidth;
+            const maxY = window.innerHeight - appWindow.offsetHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            appWindow.style.left = newX + 'px';
+            appWindow.style.top = newY + 'px';
+            appWindow.style.transform = 'none'; // Désactiver la transformation de centrage
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            appWindow.style.cursor = 'grab';
+        });
+
+        // Événements tactiles
+        appHeader.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            e.preventDefault(); // Empêche le défilement par défaut
+            appWindow.style.cursor = 'grabbing';
+            const touch = e.touches[0];
+            offset = {
+                x: touch.clientX - appWindow.getBoundingClientRect().left,
+                y: touch.clientY - appWindow.getBoundingClientRect().top
+            };
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault(); // Empêche le défilement par défaut
+            const touch = e.touches[0];
+            // Limiter le mouvement à l'intérieur de la fenêtre visible
+            let newX = touch.clientX - offset.x;
+            let newY = touch.clientY - offset.y;
+
+            const maxX = window.innerWidth - appWindow.offsetWidth;
+            const maxY = window.innerHeight - appWindow.offsetHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            appWindow.style.left = newX + 'px';
+            appWindow.style.top = newY + 'px';
+            appWindow.style.transform = 'none'; // Désactiver la transformation de centrage
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+            appWindow.style.cursor = 'grab';
+        });
+
+
+        // Crée dynamiquement le fichier manifest.json
+        const manifestContent = document.getElementById('manifest-content').textContent;
+        const blob = new Blob([manifestContent], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(blob);
+        const linkElement = document.createElement('link');
+        linkElement.setAttribute('rel', 'manifest');
+        linkElement.setAttribute('href', manifestUrl);
+        document.head.appendChild(linkElement);
+    </script>
+
+</body>
+</html>
