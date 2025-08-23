@@ -283,30 +283,45 @@
 
     <!-- Grille des applications sur le bureau (visible après connexion) -->
     <div id="desktopAppsGrid">
-        <!-- Nouvelle Tuile d'Application : Messages -->
+        <!-- Tuile : Messages -->
         <a href="https://example.com/messages" target="_blank" class="desktop-app-tile">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/speech-bubble.png" alt="Messages">
             <span>Messages</span>
         </a>
-        <!-- Nouvelle Tuile d'Application : Paramètres -->
+        <!-- Tuile : Paramètres -->
         <a href="https://example.com/settings" target="_blank" class="desktop-app-tile">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png" alt="Settings">
             <span>Paramètres</span>
         </a>
-        <!-- Nouvelle Tuile d'Application : Photos -->
+        <!-- Tuile : Photos -->
         <a href="https://example.com/photos" target="_blank" class="desktop-app-tile">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/pictures.png" alt="Photos">
             <span>Photos</span>
         </a>
-        <!-- Nouvelle Tuile d'Application : Musique -->
+        <!-- Tuile : Musique -->
         <a href="https://example.com/music" target="_blank" class="desktop-app-tile">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/music-folder.png" alt="Music">
             <span>Musique</span>
         </a>
-        <!-- Nouvelle Tuile d'Application : Navigateur (une autre façon d'accéder au navigateur) -->
+        <!-- Tuile : Navigateur (une autre façon d'accéder au navigateur) -->
         <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/internet.png" alt="Navigateur">
             <span>Navigateur</span>
+        </a>
+        <!-- NOUVELLE TUILE : YouTube -->
+        <a href="https://www.youtube.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">
+            <span>YouTube</span>
+        </a>
+        <!-- NOUVELLE TUILE : Google Search (pour une recherche rapide) -->
+        <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.google.com/favicon.ico" alt="Google">
+            <span>Google</span>
+        </a>
+        <!-- NOUVELLE TUILE : Explorateur de Fichiers (ouverture interne via JS) -->
+        <a href="#" onclick="openExplorer()" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/folder-invoices.png" alt="Fichiers">
+            <span>Fichiers</span>
         </a>
     </div>
 
@@ -323,22 +338,13 @@
     <button id="installBtn">Installer PWA</button>
     <button id="logoutBtn" onclick="signOut()">Déconnexion</button>
 
-    <!-- Dock d'applications -->
+    <!-- Dock d'applications (maintenant simplifié) -->
     <div id="dock">
-        <!-- Liens vers les applications Google (s'ouvrent dans un nouvel onglet) -->
-        <a href="https://mail.google.com" target="_blank"><img src="https://www.gstatic.com/images/branding/product/1x/gmail_48dp.png" alt="Gmail">Gmail</a>
-        <a href="https://drive.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/drive_48dp.png" alt="Drive">Drive</a>
-        <a href="https://docs.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Docs">Docs</a>
-        <a href="https://sheets.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/sheets_48dp.png" alt="Sheets">Sheets</a>
-        <a href="https://calendar.google.com" target="_blank"><img src="https://ssl.gstatic.com/images/branding/product/1x/calendar_48dp.png" alt="Agenda">Agenda</a>
-        <a href="https://youtube.com" target="_blank"><img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">YouTube</a>
-        <!-- Lien pour ouvrir l'explorateur de fichiers local (reste une fonction interne) -->
-        <a href="#" onclick="openExplorer()"><img src="https://img.icons8.com/material-outlined/48/ffffff/folder-invoices.png" alt="Fichiers">Fichiers</a>
-        <!-- Nouveau bouton pour accéder à GitHub -->
+        <!-- SEULEMENT LA TUILE GITHUB RESTE DANS LE DOCK -->
         <a href="https://github.com/" target="_blank"><img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub</a>
     </div>
 
-    <!-- Explorateur de fichiers -->
+    <!-- Explorateur de fichiers (panel interne) -->
     <div id="explorer">
         <h3>Explorateur de fichiers</h3>
         <div class="actions">
@@ -360,6 +366,7 @@
         const currentTimeElement = document.getElementById('currentTime');
         const globalBrowserUrlInput = document.getElementById('globalBrowserUrlInput');
         const globalBrowserGoBtn = document.getElementById('globalBrowserGoBtn');
+        const desktopAppsGrid = document.getElementById('desktopAppsGrid'); // Récupération de la nouvelle grille
 
         // Fonction pour mettre à jour l'heure en temps réel
         function updateTime() {
@@ -430,7 +437,7 @@
             document.getElementById("logoutBtn").style.display = "block"; // Affiche le bouton de déconnexion
             document.getElementById("currentTime").style.display = "block"; // Affiche l'heure
             document.getElementById("globalBrowserBar").style.display = "flex"; // Affiche la barre de navigation
-            document.getElementById("desktopAppsGrid").style.display = "grid"; // Affiche la grille d'applications
+            desktopAppsGrid.style.display = "grid"; // Affiche la grille d'applications
             // Vous pouvez ici traiter l'identité de l'utilisateur (jeton ID, etc.)
         }
         // Expose la fonction globalement pour Google Sign-In
@@ -446,7 +453,7 @@
             document.getElementById("logoutBtn").style.display = "none"; // Cache le bouton de déconnexion
             document.getElementById("currentTime").style.display = "none"; // Cache l'heure
             document.getElementById("globalBrowserBar").style.display = "none"; // Cache la barre de navigation
-            document.getElementById("desktopAppsGrid").style.display = "none"; // Cache la grille d'applications
+            desktopAppsGrid.style.display = "none"; // Cache la grille d'applications
             document.getElementById("login").style.display = "flex"; // Affiche l'écran de connexion à nouveau (display flex pour le centrage)
             console.log("Déconnexion réussie.");
         }
