@@ -13,9 +13,9 @@
     <!-- meta theme-color définit la couleur de la barre d'état du navigateur sur mobile, améliorant l'intégration visuelle. -->
     <meta name="theme-color" content="#1a73e8" />
     <!-- Icônes pour l'écran d'accueil du smartphone et les favicons. -->
-    <!-- Assurez-vous que ces fichiers d'icônes existent dans le dossier 'icon/'. -->
-    <link rel="icon" href="icon/icon-192.png" sizes="192x192">
-    <link rel="apple-touch-icon" href="icon/icon-192.png">
+    <!-- Assurez-vous que ces fichiers d'icônes existent dans le dossier 'icons/'. -->
+    <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <!-- Police Google Sans, optimisée pour la lisibilité sur les interfaces numériques. -->
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
@@ -327,6 +327,85 @@
             .desktop-app-tile span {font-size: 0.75rem;}
         }
     </style>
+</head>
+<body>
+    <!-- Message d'état temporaire -->
+    <div id="statusMessage"></div>
+
+    <!-- Connexion Google -->
+    <div id="login">
+        <h2>Connexion</h2>
+        <!-- REMPLACEZ CET ID CLIENT PAR LE VÔTRE ! -->
+        <!-- Vous devez configurer cet ID dans votre console Google Cloud. -->
+        <!-- Assurez-vous d'ajouter l'URL exacte de votre site (ex: https://votresite.com) -->
+        <!-- dans les "Origines JavaScript autorisées" de votre projet Google Cloud. -->
+        <div id="g_id_onload"
+            data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
+            data-callback="onSignIn"></div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <!-- Grille des applications sur le bureau (visible après connexion) -->
+    <div id="desktopAppsGrid">
+        <!-- Tuile : Google Docs -->
+        <a href="https://docs.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Google Docs">
+            <span>Docs</span>
+        </a>
+        <!-- Tuile : Google Sheets -->
+        <a href="https://sheets.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://ssl.gstatic.com/images/branding/product/1x/sheets_48dp.png" alt="Google Sheets">
+            <span>Sheets</span>
+        </a>
+        <!-- Tuile : YouTube -->
+        <a href="https://www.youtube.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">
+            <span>YouTube</span>
+        </a>
+        <!-- Tuile : Google Search (pour une recherche rapide) -->
+        <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.google.com/favicon.ico" alt="Google">
+            <span>Google</span>
+        </a>
+        <!-- Tuile : Explorateur de Fichiers (ouverture interne via JS) -->
+        <a href="#" onclick="openExplorer()" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/folder-invoices.png" alt="Fichiers">
+            <span>Fichiers</span>
+        </a>
+    </div>
+
+    <!-- Affichage de l'heure en haut à gauche -->
+    <div id="currentTime"></div>
+
+    <!-- Barre de navigation web globale en haut au centre -->
+    <div id="globalBrowserBar">
+        <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
+        <button id="globalBrowserGoBtn">Go</button>
+    </div>
+
+    <!-- Boutons d'action globaux -->
+    <button id="installBtn">Installer PWA</button>
+    <button id="logoutBtn" onclick="signOut()">Déconnexion</button>
+
+    <!-- Dock d'applications (maintenant simplifié) -->
+    <div id="dock">
+        <!-- SEULEMENT LA TUILE GITHUB RESTE DANS LE DOCK -->
+        <a href="https://github.com/" target="_blank"><img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub</a>
+    </div>
+
+    <!-- Explorateur de fichiers (panel interne) -->
+    <div id="explorer">
+        <h3>Explorateur de fichiers</h3>
+        <div class="actions">
+            <button onclick="openFile()">📂 Ouvrir fichier</button>
+            <button onclick="saveFile()">💾 Enregistrer fichier</button>
+            <button onclick="closeExplorer()">❌ Fermer</button>
+        </div>
+        <div id="fileList">Aucun fichier ouvert</div>
+    </div>
+
+    <!-- Script Google Identity Services pour la connexion -->
+    <script src="https://accounts.google.com/gsi/client"></script>
     <script>
         let deferredPrompt; // Variable pour stocker l'événement d'installation PWA
 
@@ -338,10 +417,13 @@
 
         // Fonction pour mettre à jour l'heure en temps réel
         function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            currentTimeElement.textContent = `${hours}:${minutes}`;
+            // Vérifie si l'élément existe avant de tenter de modifier son contenu
+            if (currentTimeElement) {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                currentTimeElement.textContent = `${hours}:${minutes}`;
+            }
         }
 
         // Met à jour l'heure toutes les secondes (1000 ms)
@@ -482,20 +564,23 @@
         // Nouvelle fonction pour afficher des messages temporaires à l'utilisateur
         function showStatusMessage(message, isError = false) {
             const statusMessageDiv = document.getElementById('statusMessage');
-            statusMessageDiv.textContent = message;
-            statusMessageDiv.classList.remove('success', 'error'); // Retire les classes précédentes
-            statusMessageDiv.classList.add(isError ? 'error' : 'success'); // Ajoute la classe appropriée
-            statusMessageDiv.style.display = 'block'; // Rend l'élément visible
-            statusMessageDiv.style.opacity = '1'; // Lance la transition d'apparition
+            // Vérifie si l'élément existe avant de tenter de modifier son contenu
+            if (statusMessageDiv) {
+                statusMessageDiv.textContent = message;
+                statusMessageDiv.classList.remove('success', 'error'); // Retire les classes précédentes
+                statusMessageDiv.classList.add(isError ? 'error' : 'success'); // Ajoute la classe appropriée
+                statusMessageDiv.style.display = 'block'; // Rend l'élément visible
+                statusMessageDiv.style.opacity = '1'; // Lance la transition d'apparition
 
-            // Cache le message après 3 secondes
-            setTimeout(() => {
-                statusMessageDiv.style.opacity = '0'; // Lance la transition de disparition
-                // Cache complètement l'élément après la fin de la transition d'opacité
+                // Cache le message après 3 secondes
                 setTimeout(() => {
-                    statusMessageDiv.style.display = 'none';
-                }, 300); // Correspond à la durée de la transition CSS
-            }, 3000);
+                    statusMessageDiv.style.opacity = '0'; // Lance la transition de disparition
+                    // Cache complètement l'élément après la fin de la transition d'opacité
+                    setTimeout(() => {
+                        statusMessageDiv.style.display = 'none';
+                    }, 300); // Correspond à la durée de la transition CSS
+                }, 3000);
+            }
         }
         // Expose la fonction globalement
         window.showStatusMessage = showStatusMessage;
@@ -516,81 +601,5 @@
         }
         
     </script>
-</head>
-<body>
-    <!-- Message d'état temporaire -->
-    <div id="statusMessage"></div>
-
-    <!-- Connexion Google -->
-    <div id="login">
-        <h2>Connexion</h2>
-        <!-- REMPLACEZ CET ID CLIENT PAR LE VÔTRE ! -->
-        <!-- Vous devez configurer cet ID dans votre console Google Cloud. -->
-        <!-- Assurez-vous d'ajouter l'URL exacte de votre site (ex: https://votresite.com) -->
-        <!-- dans les "Origines JavaScript autorisées" de votre projet Google Cloud. -->
-        <div id="g_id_onload"
-            data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
-            data-callback="onSignIn"></div>
-        <div class="g_id_signin" data-type="standard"></div>
-    </div>
-
-    <!-- Grille des applications sur le bureau (visible après connexion) -->
-    <div id="desktopAppsGrid">
-        <!-- Tuile : Google Docs -->
-        <a href="https://docs.google.com" target="_blank" class="desktop-app-tile">
-            <img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Google Docs">
-            <span>Docs</span>
-        </a>
-        <!-- Tuile : Google Sheets -->
-        <a href="https://sheets.google.com" target="_blank" class="desktop-app-tile">
-            <img src="https://ssl.gstatic.com/images/branding/product/1x/sheets_48dp.png" alt="Google Sheets">
-            <span>Sheets</span>
-        </a>
-        <!-- Tuile : YouTube -->
-        <a href="https://www.youtube.com" target="_blank" class="desktop-app-tile">
-            <img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">
-            <span>YouTube</span>
-        </a>
-        <!-- Tuile : Google Search (pour une recherche rapide) -->
-        <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
-            <img src="https://www.google.com/favicon.ico" alt="Google">
-            <span>Google</span>
-        </a>
-        <!-- Tuile : Explorateur de Fichiers (ouverture interne via JS) -->
-        <a href="#" onclick="openExplorer()" class="desktop-app-tile">
-            <img src="https://img.icons8.com/ios-filled/50/ffffff/folder-invoices.png" alt="Fichiers">
-            <span>Fichiers</span>
-        </a>
-    </div>
-
-    <!-- Affichage de l'heure en haut à gauche -->
-    <div id="currentTime"></div>
-
-    <!-- Barre de navigation web globale en haut au centre -->
-    <div id="globalBrowserBar">
-        <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
-        <button id="globalBrowserGoBtn">Go</button>
-    </div>
-
-    <!-- Boutons d'action globaux -->
-    <button id="installBtn">Installer PWA</button>
-    <button id="logoutBtn" onclick="signOut()">Déconnexion</button>
-
-    <!-- Dock d'applications (maintenant simplifié) -->
-    <div id="dock">
-        <!-- SEULEMENT LA TUILE GITHUB RESTE DANS LE DOCK -->
-        <a href="https://github.com/" target="_blank"><img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub</a>
-    </div>
-
-    <!-- Explorateur de fichiers (panel interne) -->
-    <div id="explorer">
-        <h3>Explorateur de fichiers</h3>
-        <div class="actions">
-            <button onclick="openFile()">📂 Ouvrir fichier</button>
-            <button onclick="saveFile()">💾 Enregistrer fichier</button>
-            <button onclick="closeExplorer()">❌ Fermer</button>
-        </div>
-        <div id="fileList">Aucun fichier ouvert</div>
-    </div>
 </body>
 </html>
