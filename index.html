@@ -1,53 +1,596 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Web OS</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#1a73e8" />
-  <link rel="icon" href="icon/icon-192.png" sizes="192x192">
-  <link rel="apple-touch-icon" href="icon/icon-192.png">
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <!-- Optimisation Clé pour le mobile : Viewport -->
+    <!-- Cette balise assure que la page s'adapte à la largeur de l'écran de l'appareil (width=device-width) -->
+    <!-- et que l'échelle est de 1.0 (initial-scale=1). 'viewport-fit=cover' est excellent pour les écrans à encoche. -->
+    <!-- Essentiel pour une réactivité et une occupation de l'écran optimales sur tous les smartphones. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Web OS</title>
+    <!-- Le fichier manifest.webmanifest est essentiel pour la reconnaissance PWA et l'installation. -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <!-- meta theme-color définit la couleur de la barre d'état du navigateur sur mobile, améliorant l'intégration visuelle. -->
+    <meta name="theme-color" content="#1a73e8" />
+    <!-- Icônes pour l'écran d'accueil du smartphone et les favicons. -->
+    <!-- Assurez-vous que ces fichiers d'icônes existent dans le dossier 'icons/'. -->
+    <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- Police Google Sans, optimisée pour la lisibilité sur les interfaces numériques. -->
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Réinitialisation de base pour tous les éléments, bonne pratique pour la cohérence des styles. */
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Google Sans',sans-serif;}
+        body {
+            width:100%; height:100vh; overflow:hidden; /* S'assure que le corps prend toute la vue et n'a pas de défilement */
+            /* Fond d'écran attrayant */
+            background: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat fixed;
+            display:flex; justify-content:center; align-items:center; /* Centrage du contenu principal */
+            color: #f0f0f0; /* Couleur de texte par défaut pour un meilleur contraste avec le fond */
+        }
+
+        /* Connexion Google */
+        #login {
+            background:rgba(255,255,255,0.15); /* Légèrement transparent */
+            backdrop-filter: blur(10px); /* Effet de flou sur le fond */
+            border: 1px solid rgba(255,255,255,0.2); /* Bordure légère */
+            padding:30px; /* Plus d'espace */
+            border-radius:16px;
+            text-align:center;
+            box-shadow:0 8px 30px rgba(0,0,0,0.4); /* Ombre plus prononcée */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px; /* Plus d'espace entre les éléments */
+        }
+        #login h2 {
+            color: #fff; /* Texte blanc pour le titre */
+            font-size: 1.8rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Ombre sur le texte */
+        }
+
+
+        /* Styles de l'heure en haut à gauche */
+        #currentTime {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            font-size: 1.3rem; /* Légèrement plus grand */
+            font-weight: bold;
+            color: #fff;
+            z-index: 1000;
+            background: rgba(0,0,0,0.3); /* Plus transparent */
+            padding: 7px 12px; /* Plus de padding */
+            border-radius: 10px; /* Plus arrondi */
+            backdrop-filter: blur(8px); /* Plus de flou */
+            border: 1px solid rgba(255,255,255,0.1); /* Bordure subtile */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        /* Styles de la barre de navigateur web globale en haut au centre */
+        #globalBrowserBar {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 450px; /* Légèrement plus large */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.3); /* Plus transparent */
+            backdrop-filter: blur(8px); /* Plus de flou */
+            padding: 8px 15px; /* Plus de padding */
+            border-radius: 10px; /* Plus arrondi */
+            border: 1px solid rgba(255,255,255,0.1); /* Bordure subtile */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+        #globalBrowserUrlInput {
+            flex-grow: 1;
+            padding: 8px 12px; /* Plus de padding */
+            border-radius: 8px; /* Plus arrondi */
+            border: none;
+            background: rgba(255,255,255,0.1); /* Fond de l'input plus transparent */
+            color: #fff;
+            font-size: 15px;
+            transition: background-color 0.3s ease;
+        }
+        #globalBrowserUrlInput:focus {
+            outline: none;
+            background: rgba(255,255,255,0.2);
+        }
+        #globalBrowserUrlInput::placeholder {
+            color: rgba(255,255,255,0.6); /* Placeholder plus clair */
+        }
+        #globalBrowserGoBtn {
+            padding: 8px 16px; /* Plus de padding */
+            border-radius: 8px; /* Plus arrondi */
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            min-width: 44px; min-height: 40px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #globalBrowserGoBtn:hover {
+            background: #1565c0; /* Couleur plus foncée au survol */
+            transform: translateY(-1px);
+        }
+
+
+        /* Styles des boutons fixes en haut */
+        #installBtn, #logoutBtn {
+            position:fixed;
+            top:15px;
+            padding:10px 16px; /* Plus de padding */
+            border-radius:10px; /* Plus arrondi */
+            background:#1a73e8;
+            color:#fff;
+            border:none;
+            cursor:pointer;
+            font-size:14px;
+            min-width: 44px; min-height: 44px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #installBtn:hover, #logoutBtn:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+        }
+        #installBtn { right:15px; display: none; }
+        #logoutBtn { right:130px; background: #d32f2f; display: none; } /* Rouge pour déconnexion */
+        #logoutBtn:hover { background: #b71c1c; }
+
+
+        /* Dock d'applications en bas */
+        #dock {
+            position:fixed; bottom:0; left:0; right:0;
+            background:rgba(0,0,0,0.4); /* Plus transparent */
+            padding:10px 0; /* Padding vertical pour les icônes */
+            display:flex; justify-content:center;
+            gap:30px; /* Plus d'espace entre les icônes */
+            border-radius:18px 18px 0 0; /* Plus arrondi en haut */
+            backdrop-filter:blur(15px); /* Flou plus prononcé */
+            border-top: 1px solid rgba(255,255,255,0.1); /* Bordure supérieure */
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3); /* Ombre vers le haut */
+            display:none;
+            overflow-x:auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #dock a {
+            display:flex; flex-direction:column; align-items:center;
+            color:#fff; text-decoration:none; font-size:13px; /* Taille de police légèrement plus grande */
+            min-width:60px;
+            padding: 8px; /* Plus de padding pour les cibles tactiles */
+            border-radius: 12px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #dock a:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateY(-5px);
+        }
+        #dock img {
+            width:45px; /* Icônes légèrement plus grandes */
+            height:45px;
+            margin-bottom:6px; /* Plus d'espace */
+            border-radius: 10px;
+        }
+
+        /* Explorateur de fichiers */
+        #explorer {
+            position:fixed; top:80px;
+            left:50%; transform: translateX(-50%); /* Centrage horizontal */
+            width: 90%; max-width: 700px; /* Plus large et centré */
+            height: calc(100vh - 160px); /* Ajuste la hauteur */
+            background:rgba(255,255,255,0.9); /* Moins transparent pour le contenu */
+            border-radius:16px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.4);
+            display:none; flex-direction:column; padding:20px; /* Plus de padding */
+            overflow:hidden;
+            z-index: 100;
+        }
+        #explorer h3 { margin-bottom:15px; color: #333; font-size: 1.5rem; }
+        #explorer .actions { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
+        #explorer button {
+            background:#1a73e8; color:#fff; border:none;
+            padding:10px 15px; border-radius:8px; cursor:pointer;
+            min-width: 44px; min-height: 44px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #explorer button:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+        }
+        #fileList {
+            flex:1; overflow:auto;
+            background:#e0e0e0; /* Fond légèrement plus clair */
+            padding:15px; border-radius:8px;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Pour afficher le texte formaté */
+        }
+
+        /* Styles pour la grille d'applications sur le bureau */
+        #desktopAppsGrid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Tuiles légèrement plus grandes */
+            gap: 25px; /* Plus d'espace entre les tuiles */
+            padding: 30px; /* Plus de padding autour */
+            width: 100%;
+            max-width: 700px; /* Max-width légèrement augmenté */
+            box-sizing: border-box;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Styles pour les tuiles d'applications individuelles sur le bureau */
+        .desktop-app-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 15px; /* Plus de padding */
+            border-radius: 16px; /* Plus arrondi */
+            transition: transform 0.2s, background-color 0.3s;
+            text-align: center;
+            user-select: none;
+            text-decoration: none;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.2); /* Fond plus sombre et transparent */
+            backdrop-filter: blur(10px); /* Flou sur les tuiles */
+            border: 1px solid rgba(255,255,255,0.1); /* Bordure subtile */
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* Ombre plus prononcée */
+        }
+
+        .desktop-app-tile:hover {
+            transform: translateY(-8px); /* Effet de soulèvement plus marqué */
+            background-color: rgba(0, 0, 0, 0.4); /* Plus sombre au survol */
+        }
+
+        .desktop-app-tile img {
+            width: 55px; /* Icônes légèrement plus grandes */
+            height: 55px;
+            margin-bottom: 10px; /* Plus d'espace */
+            border-radius: 10px;
+        }
+
+        .desktop-app-tile span {
+            font-size: 0.9rem; /* Texte légèrement plus grand */
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4); /* Ombre sur le texte */
+        }
+
+        /* Nouvelle section : Styles pour les messages d'état (remplace alert()) */
+        #statusMessage {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 18px; /* Plus de padding */
+            border-radius: 10px; /* Plus arrondi */
+            color: #fff;
+            font-size: 15px; /* Texte plus grand */
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out; /* Transition plus douce */
+            z-index: 2000;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        #statusMessage.success {
+            background-color: rgba(76, 175, 80, 0.9); /* Vert avec transparence */
+        }
+        #statusMessage.error {
+            background-color: rgba(244, 67, 54, 0.9); /* Rouge avec transparence */
+        }
+
+
+        /* Media Queries pour la réactivité sur différentes tailles d'écran */
+        @media (max-width:768px) {
+            #dock img {width:38px; height:38px;} /* Icônes du dock légèrement réduites */
+            #dock a {font-size:11px;}
+            #installBtn, #logoutBtn {font-size:13px; padding:9px 14px;}
+            #explorer {left:5%; right:5%; bottom:90px; top:100px; height: calc(100vh - 190px);} /* Ajustement pour mobile */
+            #globalBrowserBar { width: 90%; top: 20px; } /* Plus large sur les petits écrans, légèrement décalé */
+            #desktopAppsGrid { top: 60%; padding: 20px; gap: 20px; } /* Ajuste la position et l'espace sur mobile */
+            .desktop-app-tile img {width: 45px; height: 45px;}
+            .desktop-app-tile span {font-size: 0.85rem;}
+            #currentTime { top: 20px; left: 20px; font-size: 1.1rem; }
+            #installBtn { top: 20px; right: 20px; }
+            #logoutBtn { top: 20px; right: 130px; }
+        }
+        @media (max-width:480px) {
+            #dock {gap:15px; padding:8px 0;} /* Espace réduit dans le dock */
+            #dock a {min-width:50px; font-size:10px;}
+            #dock img {width:30px; height:30px;}
+            #explorer {left:0; right:0; border-radius:0; top:0; bottom:0; height:100vh;} /* L'explorateur prend tout l'écran */
+            body { align-items: flex-start; }
+            #globalBrowserBar { top: 10px; padding: 6px 10px; gap: 8px; }
+            #globalBrowserUrlInput { font-size: 13px; padding: 5px 8px; }
+            #globalBrowserGoBtn { font-size: 13px; padding: 5px 10px; min-width: 36px; min-height: 30px;}
+            #installBtn { top: 10px; right: 10px; padding: 8px 12px; font-size: 12px; }
+            #logoutBtn { top: 10px; right: 100px; padding: 8px 12px; font-size: 12px; }
+            #currentTime { top: 10px; left: 10px; font-size: 1rem; padding: 4px 8px; }
+            #desktopAppsGrid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 15px; padding: 15px; top: 55%;}
+            .desktop-app-tile {padding: 12px; border-radius: 12px;}
+            .desktop-app-tile img {width: 40px; height: 40px; margin-bottom: 6px;}
+            .desktop-app-tile span {font-size: 0.75rem;}
+        }
+    </style>
+    <script>
+        let deferredPrompt; // Variable pour stocker l'événement d'installation PWA
+
+        // Éléments du DOM (déclarés ici pour être accessibles)
+        const currentTimeElement = document.getElementById('currentTime');
+        const globalBrowserUrlInput = document.getElementById('globalBrowserUrlInput');
+        const globalBrowserGoBtn = document.getElementById('globalBrowserGoBtn');
+        const desktopAppsGrid = document.getElementById('desktopAppsGrid'); // Récupération de la grille d'applications
+
+        // Fonction pour mettre à jour l'heure en temps réel
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}`;
+        }
+
+        // Met à jour l'heure toutes les secondes (1000 ms)
+        setInterval(updateTime, 1000);
+        // Appelle la fonction une fois au chargement pour afficher l'heure immédiatement
+        updateTime();
+
+        // PWA Install : Gère l'événement d'invitation à installer la PWA.
+        // Cet événement se déclenche uniquement si l'application est sur HTTPS et répond aux critères PWA du navigateur.
+        // Dans cet environnement de prévisualisation (sandbox), il peut ne pas se déclencher.
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault(); // Empêche l'invitation par défaut du navigateur
+            deferredPrompt = e; // Stocke l'événement pour l'utiliser plus tard
+            document.getElementById("installBtn").style.display = "block"; // Affiche le bouton d'installation
+            console.log("Événement 'beforeinstallprompt' déclenché. Le bouton d'installation PWA est maintenant visible.");
+        });
+
+        // Gère le clic sur le bouton d'installation PWA
+        document.getElementById("installBtn").addEventListener("click", async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt(); // Déclenche l'invitation à installer
+                const { outcome } = await deferredPrompt.userChoice; // Attend le choix de l'utilisateur
+                if (outcome === "accepted") {
+                    console.log("PWA installée avec succès !");
+                    deferredPrompt = null; // Réinitialise l'événement si l'installation est acceptée
+                    document.getElementById("installBtn").style.display = "none"; // Cache le bouton après installation
+                } else {
+                    console.log("Installation PWA annulée.");
+                }
+            } else {
+                console.log("L'événement 'beforeinstallprompt' n'a pas été déclenché. L'installation PWA ne peut pas être lancée via le bouton.");
+                showStatusMessage("L'installation PWA ne peut pas être lancée. Accédez au site sur un smartphone via HTTPS et cherchez 'Ajouter à l'écran d'accueil'.", true);
+            }
+        });
+
+        // Fonction pour naviguer depuis la barre de navigateur globale
+        globalBrowserGoBtn.addEventListener('click', () => {
+            let query = globalBrowserUrlInput.value.trim();
+            let url;
+
+            // Simple détection si c'est une URL ou des mots-clés
+            // Vérifie si la chaîne commence par un protocole ou contient un point après le début (pour les domaines)
+            if (query.startsWith('http://') || query.startsWith('https://') || (query.includes('.') && !query.includes(' '))) {
+                url = query;
+                // Si l'URL n'a pas de protocole, ajoute HTTPS par défaut
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+            } else {
+                // Si ce sont des mots-clés, effectue une recherche Google
+                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            }
+            window.open(url, '_blank'); // Ouvre l'URL dans un nouvel onglet
+        });
+
+        // Google Sign-In Callback : Appelé après une connexion réussie
+        function onSignIn(response) {
+            console.log("Connexion réussie :", response);
+            document.getElementById("login").style.display = "none"; // Cache l'écran de connexion
+            document.getElementById("dock").style.display = "flex"; // Affiche le dock
+            document.getElementById("logoutBtn").style.display = "block"; // Affiche le bouton de déconnexion
+            document.getElementById("currentTime").style.display = "block"; // Affiche l'heure
+            document.getElementById("globalBrowserBar").style.display = "flex"; // Affiche la barre de navigation
+            desktopAppsGrid.style.display = "grid"; // Affiche la grille d'applications
+            // Vous pouvez ici traiter l'identité de l'utilisateur (jeton ID, etc.)
+        }
+        // Expose la fonction globalement pour Google Sign-In
+        window.onSignIn = onSignIn;
+
+        // Déconnexion Google
+        function signOut() {
+            // L'erreur "FedCM" est souvent liée à l'environnement sandboxed.
+            // La déconnexion visuelle reste fonctionnelle en masquant les éléments.
+            // Une vraie déconnexion de session nécessiterait une logique côté serveur ou un environnement non-sandboxé.
+            // google.accounts.id.disableAutoSelect(); // Commenté car peut générer des erreurs FedCM dans certains environnements
+            document.getElementById("dock").style.display = "none"; // Cache le dock
+            document.getElementById("logoutBtn").style.display = "none"; // Cache le bouton de déconnexion
+            document.getElementById("currentTime").style.display = "none"; // Cache l'heure
+            document.getElementById("globalBrowserBar").style.display = "none"; // Cache la barre de navigation
+            desktopAppsGrid.style.display = "none"; // Cache la grille d'applications
+            document.getElementById("login").style.display = "flex"; // Affiche l'écran de connexion à nouveau (display flex pour le centrage)
+            console.log("Déconnexion réussie.");
+        }
+        // Expose la fonction globalement pour le bouton onclick
+        window.signOut = signOut;
+
+
+        // Explorateur de fichiers : Ouvrir un fichier local (API File System Access)
+        async function openFile() {
+            try {
+                // window.showOpenFilePicker() : API moderne pour choisir des fichiers locaux
+                const [fileHandle] = await window.showOpenFilePicker();
+                const file = await fileHandle.getFile();
+                const text = await file.text();
+                document.getElementById("fileList").innerText = `Contenu de "${file.name}" :\n\n${text}`;
+                showStatusMessage(`"${file.name}" ouvert.`); // Message de succès
+            } catch (err) {
+                console.error("Erreur lors de l'ouverture du fichier :", err);
+                showStatusMessage("Erreur lors de l'ouverture du fichier. Assurez-vous d'accorder les permissions.", true); // Message d'erreur
+            }
+        }
+        // Expose la fonction globalement pour le bouton onclick
+        window.openFile = openFile;
+
+        // Explorateur de fichiers : Enregistrer un fichier local (API File System Access)
+        async function saveFile() {
+            try {
+                const opts = { types: [{ description: 'Texte', accept: { 'text/plain': ['.txt'] } }] };
+                // window.showSaveFilePicker() : API moderne pour choisir un emplacement d'enregistrement
+                const fileHandle = await window.showSaveFilePicker(opts);
+                const writable = await fileHandle.createWritable();
+                await writable.write("Exemple de contenu sauvegardé via Web OS"); // Contenu à sauvegarder
+                await writable.close();
+                showStatusMessage("Fichier sauvegardé avec succès !"); // Message de succès
+            } catch (err) {
+                console.error("Erreur lors de l'enregistrement du fichier :", err);
+                showStatusMessage("Erreur lors de l'enregistrement du fichier. Vérifiez les permissions.", true); // Message d'erreur
+            }
+        }
+        // Expose la fonction globalement pour le bouton onclick
+        window.saveFile = saveFile;
+
+        // Affiche l'explorateur de fichiers
+        function openExplorer() {
+            document.getElementById("explorer").style.display = "flex";
+            document.getElementById("fileList").innerText = "Aucun fichier ouvert"; // Réinitialise le contenu
+        }
+        // Expose la fonction globalement
+        window.openExplorer = openExplorer;
+
+        // Cache l'explorateur de fichiers
+        function closeExplorer() {
+            document.getElementById("explorer").style.display = "none";
+        }
+        // Expose la fonction globalement
+        window.closeExplorer = closeExplorer;
+
+        // Nouvelle fonction pour afficher des messages temporaires à l'utilisateur
+        function showStatusMessage(message, isError = false) {
+            const statusMessageDiv = document.getElementById('statusMessage');
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.classList.remove('success', 'error'); // Retire les classes précédentes
+            statusMessageDiv.classList.add(isError ? 'error' : 'success'); // Ajoute la classe appropriée
+            statusMessageDiv.style.display = 'block'; // Rend l'élément visible
+            statusMessageDiv.style.opacity = '1'; // Lance la transition d'apparition
+
+            // Cache le message après 3 secondes
+            setTimeout(() => {
+                statusMessageDiv.style.opacity = '0'; // Lance la transition de disparition
+                // Cache complètement l'élément après la fin de la transition d'opacité
+                setTimeout(() => {
+                    statusMessageDiv.style.display = 'none';
+                }, 300); // Correspond à la durée de la transition CSS
+            }, 3000);
+        }
+        // Expose la fonction globalement
+        window.showStatusMessage = showStatusMessage;
+
+
+        
+        // --- Enregistrement du Service Worker (DÉSACTIVÉ POUR CET ENVIRONNEMENT) ---
+        // Le Service Worker nécessite que son fichier (service-worker.js) soit servi depuis une URL et un protocole spécifiques.
+        // Dans cet environnement de démonstration sandboxed, l'enregistrement direct peut générer des erreurs de protocole.
+        // Les fonctionnalités PWA d'installation sur l'écran d'accueil fonctionnent tout de même via le fichier manifest.
+        // Décommenter ce bloc lors du déploiement sur un serveur HTTPS.
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/service-worker.js")
+                    .then(() => console.log("✅ Service Worker enregistré avec succès"))
+                    .catch(err => console.error("❌ Erreur lors de l'enregistrement du Service Worker:", err));
+            });
+        }
+        
+    </script>
 </head>
 <body>
-  <div id="statusMessage"></div>
-  <div id="login">
-    <h2>Connexion</h2>
-    <div id="g_id_onload"
-      data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
-      data-callback="onSignIn"></div>
-    <div class="g_id_signin" data-type="standard"></div>
-  </div>
-  <div id="desktopAppsGrid">
-    <a href="https://docs.google.com" target="_blank" rel="noopener noreferrer" class="desktop-app-tile">
-      <img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Google Docs">
-      <span>Docs</span>
-    </a>
-  </div>
-  <div id="currentTime"></div>
-  <div id="globalBrowserBar">
-    <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
-    <button id="globalBrowserGoBtn">Go</button>
-  </div>
-  <button id="installBtn">Installer PWA</button>
-  <button id="logoutBtn">Déconnexion</button>
-  <div id="dock">
-    <a href="https://github.com/" target="_blank" rel="noopener noreferrer">
-      <img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub
-    </a>
-  </div>
-  <div id="explorer">
-    <h3>Explorateur de fichiers</h3>
-    <div class="actions">
-      <button onclick="openFile()">📂 Ouvrir fichier</button>
-      <button onclick="saveFile()">💾 Enregistrer fichier</button>
-      <button onclick="closeExplorer()">❌ Fermer</button>
+    <!-- Message d'état temporaire -->
+    <div id="statusMessage"></div>
+
+    <!-- Connexion Google -->
+    <div id="login">
+        <h2>Connexion</h2>
+        <!-- REMPLACEZ CET ID CLIENT PAR LE VÔTRE ! -->
+        <!-- Vous devez configurer cet ID dans votre console Google Cloud. -->
+        <!-- Assurez-vous d'ajouter l'URL exacte de votre site (ex: https://votresite.com) -->
+        <!-- dans les "Origines JavaScript autorisées" de votre projet Google Cloud. -->
+        <div id="g_id_onload"
+            data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
+            data-callback="onSignIn"></div>
+        <div class="g_id_signin" data-type="standard"></div>
     </div>
-    <div id="fileList">Aucun fichier ouvert</div>
-  </div>
-  <script src="https://accounts.google.com/gsi/client"></script>
-  <script src="app.js"></script>
+
+    <!-- Grille des applications sur le bureau (visible après connexion) -->
+    <div id="desktopAppsGrid">
+        <!-- Tuile : Google Docs -->
+        <a href="https://docs.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Google Docs">
+            <span>Docs</span>
+        </a>
+        <!-- Tuile : Google Sheets -->
+        <a href="https://sheets.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://ssl.gstatic.com/images/branding/product/1x/sheets_48dp.png" alt="Google Sheets">
+            <span>Sheets</span>
+        </a>
+        <!-- Tuile : YouTube -->
+        <a href="https://www.youtube.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.gstatic.com/youtube/img/branding/favicon/favicon_48x48.png" alt="YouTube">
+            <span>YouTube</span>
+        </a>
+        <!-- Tuile : Google Search (pour une recherche rapide) -->
+        <a href="https://www.google.com" target="_blank" class="desktop-app-tile">
+            <img src="https://www.google.com/favicon.ico" alt="Google">
+            <span>Google</span>
+        </a>
+        <!-- Tuile : Explorateur de Fichiers (ouverture interne via JS) -->
+        <a href="#" onclick="openExplorer()" class="desktop-app-tile">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/folder-invoices.png" alt="Fichiers">
+            <span>Fichiers</span>
+        </a>
+    </div>
+
+    <!-- Affichage de l'heure en haut à gauche -->
+    <div id="currentTime"></div>
+
+    <!-- Barre de navigation web globale en haut au centre -->
+    <div id="globalBrowserBar">
+        <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
+        <button id="globalBrowserGoBtn">Go</button>
+    </div>
+
+    <!-- Boutons d'action globaux -->
+    <button id="installBtn">Installer PWA</button>
+    <button id="logoutBtn" onclick="signOut()">Déconnexion</button>
+
+    <!-- Dock d'applications (maintenant simplifié) -->
+    <div id="dock">
+        <!-- SEULEMENT LA TUILE GITHUB RESTE DANS LE DOCK -->
+        <a href="https://github.com/" target="_blank"><img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub</a>
+    </div>
+
+    <!-- Explorateur de fichiers (panel interne) -->
+    <div id="explorer">
+        <h3>Explorateur de fichiers</h3>
+        <div class="actions">
+            <button onclick="openFile()">📂 Ouvrir fichier</button>
+            <button onclick="saveFile()">💾 Enregistrer fichier</button>
+            <button onclick="closeExplorer()">❌ Fermer</button>
+        </div>
+        <div id="fileList">Aucun fichier ouvert</div>
+    </div>
 </body>
 </html>
