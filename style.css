@@ -1,0 +1,20 @@
+/* Exemple de style minimal */
+body {
+  margin: 0;
+  font-family: 'Google Sans', sans-serif;
+  background: #f0f0f0;
+}
+#login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+}
+.desktop-app-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+}

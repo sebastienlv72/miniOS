@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Web OS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="statusMessage"></div>
+  <div id="login">
+    <h2>Connexion</h2>
+    <div id="g_id_onload"
+      data-client_id="908397631579-oajr9nc35chhcho9ja3sd1of8v6369gn.apps.googleusercontent.com"
+      data-callback="onSignIn"></div>
+    <div class="g_id_signin" data-type="standard"></div>
+  </div>
+  <div id="desktopAppsGrid">
+    <a href="https://docs.google.com" target="_blank" rel="noopener noreferrer" class="desktop-app-tile">
+      <img src="https://ssl.gstatic.com/images/branding/product/1x/docs_48dp.png" alt="Google Docs">
+      <span>Docs</span>
+    </a>
+  </div>
+  <div id="currentTime"></div>
+  <div id="globalBrowserBar">
+    <input type="url" id="globalBrowserUrlInput" placeholder="Saisissez une URL...">
+    <button id="globalBrowserGoBtn">Go</button>
+  </div>
+  <button id="installBtn">Installer PWA</button>
+  <button id="logoutBtn">Déconnexion</button>
+  <div id="dock">
+    <a href="https://github.com/" target="_blank" rel="noopener noreferrer">
+      <img src="https://github.githubassets.com/favicons/favicon.svg" alt="GitHub">GitHub
+    </a>
+  </div>
+  <div id="explorer">
+    <h3>Explorateur de fichiers</h3>
+    <div class="actions">
+      <button onclick="openFile()">📂 Ouvrir fichier</button>
+      <button onclick="saveFile()">💾 Enregistrer fichier</button>
+      <button onclick="closeExplorer()">❌ Fermer</button>
+    </div>
+    <div id="fileList">Aucun fichier ouvert</div>
+  </div>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <script src="app.js"></script>
+</body>
+</html>
